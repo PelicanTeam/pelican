@@ -1,0 +1,27 @@
+Règles pour créer un algorithme :
+
+1 - Tous les attributs qui sont des paramètres en entrée (obligatoire ou optionnel) et en sortie de l'algorithme doivent être à visibilité publique car ils doivent être accessibles depuis la classe abstraite Algorithm. Tous les autres attributs locaux peuvent rester avec une visibilité privée.
+
+2 - Il y a seulement trois méthodes publiques:
+
+	- Le constructeur:
+			Dans le constructeur on renseigne les différents attributs de type String de la classe Algorithm: super.inputs qui contient tous les noms des attributs d'entrée obligatoires séparés par une virgule sans espace ; super.outputs qui contient tous les noms des attributs de sortie séparés par une virgule sans espace ; et enfin super.options qui contient tous les noms des attributs d'entrée optionnels 				séparés par une virgule sans espace. Dans tous les cas l'ordre dans lequel les noms des attributs sont fournis est très important, 				puisque l'ordre des noms dans super.inputs (et de façon optionnelle dans super.options) doit correspondre à l'ordre dans lesquels les 				paramètres seront fournis lors d'un appel à process(), l'ordre des noms dans super.outputs doit correspondre à l'ordre dans lesquels 				les objets de sortie seront retournés lors d'un appel à process, processAll et processOne (voir précisions sur la nouvelle classe Algorithm). On doit également initialiser super.help avec une chaîne de caractères décrivant ce que fait l'algorithme (de façon similaire au commentaire donné dans l'ancienne méthode help).
+
+	- Le launch
+			Aucun changement particulier n'est à signaler concernant l'implémentation de la méthode launch, excepté la vérification de la validité du contenu des paramètres (seuls les types sont vérifiés automatiquement par la classe Algorithm).
+
+	- Le exec
+			Pour avoir une méthode de classe (statique) fortement typée, on ajoute une méthode intitulée exec dans la classe concrète pour faire un appel à la méthode process définie dans la classe abstraite ; par exemple :
+			public Image exec(Image im, int val) { return (Image) new Exemple().process(im,val); }
+			Cette classe doit prendre en paramètre tous les attributs d'entrée en gardant leurs noms et leur ordre définis dans super.inputs dans le constructeur.
+
+3 - La Javadoc doit être renseignée (au minimum) pour:
+
+	- La classe :   
+			Un commentaire de quelques lignes qui décrit quel traitement fait l'algorithme sur quel type d'objet et ce qu'il renvoie.
+			Le champ @author doit être renseigné, il comprend en premier lieu le nom du créateur de la classe et, s'il y en a, les nom des personnes qui ont apporté des modifications (séparés par une virgule).
+
+	- Chaque attribut d'entrée, de sortie et d'option.
+
+	- La méthode exec: 
+			Cette Javadoc comprend la description du traitement que fait cette méthode (C'est en fait un copier/coller de la Javadoc de la classe), une balise @param doit être définie pour chaque paramètre de cette méthode, une balise @return doit être définie pour l'objet de retour.

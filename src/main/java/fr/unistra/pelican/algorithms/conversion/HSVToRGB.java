@@ -1,0 +1,146 @@
+package fr.unistra.pelican.algorithms.conversion;
+
+import fr.unistra.pelican.Algorithm;
+import fr.unistra.pelican.AlgorithmException;
+import fr.unistra.pelican.ByteImage;
+import fr.unistra.pelican.Image;
+
+/**
+ * This class realizes the transformation of a tristumulus double valued HSV
+ * image with pixels in [0,1], into a byte valued RGB image.
+ *	MASK MANAGEMENT (by Régis) : 
+ *	- input's mask becomes output's mask.
+ *	- no modification on color calculation.
+ * 
+ * @author Erchan Aptoula
+ * 
+ */
+
+public class HSVToRGB extends Algorithm {
+	/**
+	 * Input parameter.
+	 */
+	public Image input;
+
+	/**
+	 * Output parameter.
+	 */
+	public Image output;
+
+	/**
+	 * Constructor
+	 * 
+	 */
+	public HSVToRGB() {
+
+		super();
+		super.inputs = "input";
+		super.outputs = "output";
+		
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see fr.unistra.pelican.Algorithm#launch()
+	 */
+	public void launch() throws AlgorithmException {
+		int xdim = input.getXDim();
+		int ydim = input.getYDim();
+		int zdim = input.getZDim();
+		int tdim = input.getTDim();
+		int bdim = input.getBDim();
+
+		if (bdim != 3)
+			throw new AlgorithmException(
+					"The input must be a tristumulus HSV image");
+
+		output = new ByteImage(xdim, ydim, zdim, tdim, bdim);
+		this.output.setMask( this.input.getMask() );
+		output.setColor(true);
+
+		for (int x = 0; x < xdim; x++) {
+			for (int y = 0; y < ydim; y++) {
+				for (int z = 0; z < zdim; z++) {
+					for (int t = 0; t < tdim; t++) {
+						double H = input.getPixelXYZTBDouble(x, y, z, t, 0);
+						double S = input.getPixelXYZTBDouble(x, y, z, t, 1);
+						double V = input.getPixelXYZTBDouble(x, y, z, t, 2);
+
+						double R, G, B;
+
+						if (S >= 0.0 && S <= 0.0) { // doubles are tricky in
+							// equality tests..
+							R = G = B = V; // hue undefined
+
+						} else if (V >= 0.0 && V <= 0.0) {
+							R = G = B = 0.0; // hue and saturation undefined
+
+						} else {
+							H = H * 6; // H *= 360 / 60
+
+							int i = (int) Math.floor(H);
+							double f = H - i;
+							double p = V * (1 - S);
+							double q = V * (1 - S * f);
+							double w = V * (1 - S * (1 - f));
+
+							switch (i) {
+							case 0:
+								R = V;
+								G = w;
+								B = p;
+								break;
+							case 1:
+								R = q;
+								G = V;
+								B = p;
+								break;
+							case 2:
+								R = p;
+								G = V;
+								B = w;
+								break;
+							case 3:
+								R = p;
+								G = q;
+								B = V;
+								break;
+							case 4:
+								R = w;
+								G = p;
+								B = V;
+								break;
+							default:
+								R = V;
+								G = p;
+								B = q;
+								break;
+							}
+
+						}
+
+						output.setPixelXYZTBByte(x, y, z, t, 0, (int) Math
+								.round(R * 255));
+						output.setPixelXYZTBByte(x, y, z, t, 1, (int) Math
+								.round(G * 255));
+						output.setPixelXYZTBByte(x, y, z, t, 2, (int) Math
+								.round(B * 255));
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Realizes the transformation of a tristumulus double valued HSV
+	 * image with pixels in [0,1], into a byte valued RGB image.
+	 * 
+	 * @param input
+	 *            Tristumulus double valued HSV image with pixels in [0,1].
+	 * @return Byte valued RGB image.
+	 */
+	public static Image exec(Image input) {
+		return (Image) new HSVToRGB().process(input);
+	}
+}
