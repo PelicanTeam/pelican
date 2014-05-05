@@ -26,7 +26,7 @@ public class DrawLine extends Algorithm {
 	public Point p2;
 
 	/**
-	 * Color of the circle
+	 * Color of the line
 	 */
 	public Color color=Color.WHITE;
 
