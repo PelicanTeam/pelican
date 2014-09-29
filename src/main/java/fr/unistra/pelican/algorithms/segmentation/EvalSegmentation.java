@@ -188,7 +188,17 @@ public class EvalSegmentation extends Algorithm {
 			// Load the image
 			Image source = (Image) new ImageLoader().process(file + ".png");
 			Image regions = (Image) new RegionsLoader().process(file);
+Image source = (Image) new ImageLoader().process(file + ".png");
+			Image regions = (Image) new RegionsLoader().process(file);
 
+			// Create regions
+			Image result = (Image) new RegionBuilderWatershedClassical()
+					.process(source, 0.20);
+
+			// View it
+			new Viewer2D().process(new DrawFrontiersOnImage().process(source,
+					new FrontiersFromSegmentation().process(result)),
+					"Segmentation of " + file);
 			// Create regions
 			Image result = (Image) new RegionBuilderWatershedClassical()
 					.process(source, 0.20);
