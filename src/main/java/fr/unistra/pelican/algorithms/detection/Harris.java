@@ -2,6 +2,7 @@ package fr.unistra.pelican.algorithms.detection;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -11,6 +12,7 @@ import fr.unistra.pelican.Image;
 import fr.unistra.pelican.algorithms.conversion.AverageChannels;
 import fr.unistra.pelican.algorithms.io.ImageLoader;
 import fr.unistra.pelican.algorithms.visualisation.Viewer2D;
+import fr.unistra.pelican.util.CornerComparator;
 import fr.unistra.pelican.util.Keypoint;
 import fr.unistra.pelican.util.data.Corner;
 
@@ -53,6 +55,9 @@ public class Harris extends Algorithm {
 	/** Input image */
 	public Image image;
 
+	/** Maximal number of points */
+	public int maxNumber=0;
+
 	/** Gaussian filter parameter*/
 	public double sigma=1.2;
 
@@ -76,7 +81,7 @@ public class Harris extends Algorithm {
 		super.help="Performs Harris corner detection";
 		super.inputs="image";
 		super.outputs="keypoints";
-		super.options="sigma,k,spacing";
+		super.options="maxNumber,sigma,k,spacing";
 	}
 
 	/**
@@ -226,7 +231,7 @@ public class Harris extends Algorithm {
 	 * @return the orginal image marked with cross sign at each corner
 	 */
 	public void filter(double sigma, double k, int minDistance) {
-		
+
 		// precompute derivatives
 		computeDerivatives(sigma);
 
@@ -260,10 +265,19 @@ public class Harris extends Algorithm {
 			}
 		}
 		keypoints = new ArrayList<Keypoint>();
-		for (Corner p:corners) {
-			keypoints.add(new Keypoint(p.getX(),p.getY()));
-		}	
-		
+		if(maxNumber == 0 || maxNumber >=corners.size()){
+			for (Corner p:corners) {
+				keypoints.add(new Keypoint(p.getX(),p.getY()));
+			}
+		}
+		else{
+			Collections.sort(corners,new CornerComparator(corners));
+			for(int i=0;i<maxNumber;i++){
+				Corner p = corners.get(i);
+				keypoints.add(new Keypoint(p.getX(),p.getY()));
+			}
+		}
+
 	}
 
 	@Override
@@ -302,40 +316,78 @@ public class Harris extends Algorithm {
 		return (List<Corner>) new Harris().process(image,gaussian);
 
 	}
-
 	/**
 	 * Perform Harris corner detection
 	 * @param image Input image
 	 * @param gaussian Gaussian filter parameter
 	 * @param k parameter of the harris measure formula
-	 * @param spacing Minimal space between two corners
+	 * @param maxNumber Maximum number of keypoints
 	 * @return List of detected corners
 	 */
-	public static ArrayList<Keypoint> exec(Image image,double gaussian,double k,int spacing) {
-		return (ArrayList<Keypoint>) new Harris().process(image,gaussian,spacing);
+	public static ArrayList<Keypoint> exec(Image image,double gaussian,double k,int maxNumber) {
+		return (ArrayList<Keypoint>) new Harris().process(image,gaussian,maxNumber);
 
 	}
-
+	
 	/**
 	 * Perform Harris corner detection
 	 * @param image Input image
 	 * @param gaussian Gaussian filter parameter
+	 * @param k parameter of the harris measure formula
+	 * @param maxNumber Maximum number of keypoints
 	 * @param spacing Minimal space between two corners
 	 * @return List of detected corners
 	 */
-	public static ArrayList<Keypoint> exec(Image image,double gaussian,int spacing) {
-		return (ArrayList<Keypoint>) new Harris().process(image,gaussian,spacing);
+	public static ArrayList<Keypoint> exec(Image image,double gaussian,double k,int maxNumber,int spacing) {
+		return (ArrayList<Keypoint>) new Harris().process(image,gaussian,maxNumber,spacing);
 
 	}
-
+	
 	/**
 	 * Perform Harris corner detection
 	 * @param image Input image
+	 * @param gaussian Gaussian filter parameter
+	 * @param maxNumber Maximum number of keypoints
 	 * @param spacing Minimal space between two corners
 	 * @return List of detected corners
 	 */
-	public static ArrayList<Keypoint> exec(Image image,int spacing) {
-		return (ArrayList<Keypoint>) new Harris().process(image,spacing);
+	public static ArrayList<Keypoint> exec(Image image,double gaussian,int maxNumber,int spacing) {
+		return (ArrayList<Keypoint>) new Harris().process(image,gaussian,maxNumber,spacing);
+
+	}
+	
+	/**
+	 * Perform Harris corner detection
+	 * @param image Input image
+	 * @param gaussian Gaussian filter parameter
+	 * @param maxNumber Maximum number of keypoints
+	 * @return List of detected corners
+	 */
+	public static ArrayList<Keypoint> exec(Image image,double gaussian,int maxNumber) {
+		return (ArrayList<Keypoint>) new Harris().process(image,gaussian,maxNumber);
+
+	}
+	
+	/**
+	 * Perform Harris corner detection
+	 * @param image Input image
+	 * @param maxNumber Maximum number of keypoints
+	 * @return List of detected corners
+	 */
+	public static ArrayList<Keypoint> exec(Image image,int maxNumber) {
+		return (ArrayList<Keypoint>) new Harris().process(image,maxNumber);
+
+	}
+	
+	/**
+	 * Perform Harris corner detection
+	 * @param image Input image
+	 * @param maxNumber Maximum number of keypoints
+	 * @param spacing Minimal space between two corners
+	 * @return List of detected corners
+	 */
+	public static ArrayList<Keypoint> exec(Image image,int maxNumber,int spacing) {
+		return (ArrayList<Keypoint>) new Harris().process(image,maxNumber,spacing);
 
 	}
 
@@ -343,7 +395,7 @@ public class Harris extends Algorithm {
 		Image i = ImageLoader.exec("samples/lenna.png");
 		i = AverageChannels.exec(i);
 
-		ArrayList<Keypoint> keypoints = new Harris().exec(i);
+		ArrayList<Keypoint> keypoints = new Harris().exec(i,5);
 		for (Keypoint k : keypoints) {
 			// add the cross sign over the image
 			for (int dt=-3; dt<=3; dt++) {
