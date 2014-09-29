@@ -14,7 +14,7 @@ import fr.unistra.pelican.util.data.DoubleArrayData;
  *
  *	@author Régis Witz
  */
-public class Keypoint implements Cloneable,Comparable<Keypoint> { 
+public class Keypoint implements Cloneable { 
 
 	  ////////////
 	 // FIELDS //

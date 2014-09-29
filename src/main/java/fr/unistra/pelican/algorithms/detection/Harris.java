@@ -12,6 +12,7 @@ import fr.unistra.pelican.algorithms.io.ImageLoader;
 import fr.unistra.pelican.algorithms.morphology.gray.GrayInternGradient;
 import fr.unistra.pelican.algorithms.visualisation.Viewer2D;
 import fr.unistra.pelican.util.Keypoint;
+import fr.unistra.pelican.util.NumericValuedPoint;
 import fr.unistra.pelican.util.Point4D;
 import fr.unistra.pelican.util.Tools;
 import fr.unistra.pelican.util.data.DoubleArrayData;
@@ -64,15 +65,21 @@ public class Harris extends Algorithm {
 		BooleanImage seH = FlatStructuringElement2D.createHorizontalLineFlatStructuringElement(3);
 		Image inputX = (Image) new GrayInternGradient().process( this.input, seH );
 
+		Viewer2D.exec(inputX);
+		
 		// vertical differential
 		BooleanImage seV = FlatStructuringElement2D.createVerticalLineFlatStructuringElement(3);
 		Image inputY = (Image) new GrayInternGradient().process( this.input, seV );
 
+		Viewer2D.exec(inputY);
+		
 		// 8-neighborhood
 		BooleanImage se = FlatStructuringElement2D.createSquareFlatStructuringElement(3);
 		Point4D[] points = se.foreground();
+		
+		double max= Double.NEGATIVE_INFINITY;
 
-		ArrayList<Keypoint> tmp = new ArrayList<Keypoint>();
+		ArrayList<NumericValuedPoint> tmp = new ArrayList<NumericValuedPoint>();
 		double p;
 		for ( int x = 0 ; x < input.getXDim() ; x++ ) { 
 			for ( int y = 0; y < input.getYDim(); y++ ) { 
@@ -105,22 +112,34 @@ public class Harris extends Algorithm {
 				double trace = diffX2 + diffY2;
 
 				double h = determinant - this.alpha * trace*trace;
-
-				Double[] descriptor = new Double[1];
-				descriptor[0] = h;
-
-				DoubleArrayData data = new  DoubleArrayData();
-//				data.setDescriptor( null );
-				data.setValues( descriptor );
-
-				tmp.add( new Keypoint( x,y,data ) );
+				tmp.add( new NumericValuedPoint( x,y,h ) );
+				
+				if(h>max)
+					max=h;
 			}
 		}
 
 		Collections.sort( tmp );
+		
+		for(int i=tmp.size()-1; i > tmp.size()-51; i--)
+		{
+			System.out.println(tmp.get(i).getValue());
+		}
+		
+		System.out.println("Max : "+max);
 
 		this.output = new ArrayList<Keypoint>();
-		for ( int i = 0 ; i < this.nbpoints ; i++ ) this.output.add( tmp.get(i) );
+		for ( int i = 0 ; i < this.nbpoints ; i++ ) 
+		//for(int i=tmp.size()-1; i > tmp.size()-this.nbpoints-1; i--)
+		{
+			DoubleArrayData data = new  DoubleArrayData();
+//			data.setDescriptor( null );
+			Double[] descriptor = new Double[1];
+			descriptor[0] = tmp.get(i).getValue().doubleValue();
+			data.setValues( descriptor );
+		
+			this.output.add( new Keypoint(tmp.get(i).getX(), tmp.get(i).getY(),data) );
+		}
 	}
 
 
@@ -136,8 +155,10 @@ public class Harris extends Algorithm {
 		Double[] values;
 		for ( Keypoint key : res ) { 
 
-			values = ( Double[] ) key.data.getValues();
-			img.setPixelXYDouble( (int)key.x,(int)key.y,values[0] );
+			
+//			values = ( Double[] ) key.data.getValues();
+//			img.setPixelXYDouble( (int)key.x,(int)key.y,values[0] );
+			img.setPixelXYDouble( (int)key.x,(int)key.y,1.0 );
 		}
 		Viewer2D.exec( img, "sonuc " );
 
