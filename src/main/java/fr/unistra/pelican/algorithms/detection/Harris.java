@@ -12,9 +12,8 @@ import fr.unistra.pelican.Image;
 import fr.unistra.pelican.algorithms.conversion.AverageChannels;
 import fr.unistra.pelican.algorithms.io.ImageLoader;
 import fr.unistra.pelican.algorithms.visualisation.Viewer2D;
-import fr.unistra.pelican.util.CornerComparator;
 import fr.unistra.pelican.util.Keypoint;
-import fr.unistra.pelican.util.data.Corner;
+import fr.unistra.pelican.util.NumericValuedPoint;
 
 
 /* Old imports
@@ -237,7 +236,7 @@ public class Harris extends Algorithm {
 
 		// Harris measure map
 		float[][] harrismap = computeHarrisMap(k);
-		ArrayList<Corner> corners = new ArrayList<Corner>();
+		ArrayList<NumericValuedPoint> corners = new ArrayList<NumericValuedPoint>();
 		// for each pixel in the harrismap 
 		for (int y=1; y<image.ydim-1; y++) {
 			for (int x=1; x<image.xdim-1; x++) {
@@ -247,33 +246,33 @@ public class Harris extends Algorithm {
 				// keep only a local maxima
 				if (!isSpatialMaxima(harrismap, x, y)) continue;
 				// add the corner to the list
-				corners.add( new Corner(x,y,h) );
+				corners.add( new NumericValuedPoint(x,y,h) );
 			}
 		}
 
 		// remove corners to close to each other (keep the highest measure)
-		Iterator<Corner> iter = corners.iterator();
+		Iterator<NumericValuedPoint> iter = corners.iterator();
 		while(iter.hasNext()) {
-			Corner p = iter.next();
-			for(Corner n:corners) {
+			NumericValuedPoint p = iter.next();
+			for(NumericValuedPoint n:corners) {
 				if (n==p) continue;
 				int dist = (int)Math.sqrt( (p.getX()-n.getX())*(p.getX()-n.getX())+(p.getY()-n.getY())*(p.getY()-n.getY()) );
 				if(dist>minDistance) continue;
-				if (n.getH()<p.getH()) continue;
+				if (n.getValue().floatValue()<p.getValue().floatValue()) continue;
 				iter.remove();
 				break;
 			}
 		}
 		keypoints = new ArrayList<Keypoint>();
 		if(maxNumber == 0 || maxNumber >=corners.size()){
-			for (Corner p:corners) {
+			for (NumericValuedPoint p:corners) {
 				keypoints.add(new Keypoint(p.getX(),p.getY()));
 			}
 		}
 		else{
-			Collections.sort(corners,new CornerComparator(corners));
+			Collections.sort(corners);
 			for(int i=0;i<maxNumber;i++){
-				Corner p = corners.get(i);
+				NumericValuedPoint p = corners.get(i);
 				keypoints.add(new Keypoint(p.getX(),p.getY()));
 			}
 		}
@@ -285,6 +284,8 @@ public class Harris extends Algorithm {
 		filter(sigma, k, spacing);
 	}
 
+//TODO : Check the different exec parameters order (seems to be some problem there ...)	
+	
 	/**
 	 * Perform Harris corner detection
 	 * @param image Input image
@@ -312,8 +313,8 @@ public class Harris extends Algorithm {
 	 * @param k parameter of the harris measure formula
 	 * @return List of detected corners
 	 */
-	public static List<Corner> exec(Image image,double gaussian,double k) {
-		return (List<Corner>) new Harris().process(image,gaussian);
+	public static ArrayList<Keypoint> exec(Image image,double gaussian,double k) {
+		return (ArrayList<Keypoint>) new Harris().process(image,gaussian,k);
 
 	}
 	/**
@@ -325,7 +326,7 @@ public class Harris extends Algorithm {
 	 * @return List of detected corners
 	 */
 	public static ArrayList<Keypoint> exec(Image image,double gaussian,double k,int maxNumber) {
-		return (ArrayList<Keypoint>) new Harris().process(image,gaussian,maxNumber);
+		return (ArrayList<Keypoint>) new Harris().process(image,gaussian,k,maxNumber);
 
 	}
 	
@@ -339,7 +340,7 @@ public class Harris extends Algorithm {
 	 * @return List of detected corners
 	 */
 	public static ArrayList<Keypoint> exec(Image image,double gaussian,double k,int maxNumber,int spacing) {
-		return (ArrayList<Keypoint>) new Harris().process(image,gaussian,maxNumber,spacing);
+		return (ArrayList<Keypoint>) new Harris().process(image,gaussian,k,maxNumber,spacing);
 
 	}
 	
@@ -395,7 +396,7 @@ public class Harris extends Algorithm {
 		Image i = ImageLoader.exec("samples/lenna.png");
 		i = AverageChannels.exec(i);
 
-		ArrayList<Keypoint> keypoints = new Harris().exec(i,5);
+		ArrayList<Keypoint> keypoints = Harris.exec(i,50);
 		for (Keypoint k : keypoints) {
 			// add the cross sign over the image
 			for (int dt=-3; dt<=3; dt++) {
