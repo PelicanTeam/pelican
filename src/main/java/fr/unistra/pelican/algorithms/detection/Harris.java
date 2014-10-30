@@ -4,7 +4,6 @@ package fr.unistra.pelican.algorithms.detection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 
 import fr.unistra.pelican.Algorithm;
 import fr.unistra.pelican.AlgorithmException;
@@ -300,75 +299,41 @@ public class Harris extends Algorithm {
 	 * Perform Harris corner detection
 	 * @param image Input image
 	 * @param gaussian Gaussian filter parameter
-	 * @return List of detected corners
-	 */
-	public static ArrayList<Keypoint> exec(Image image,double gaussian) {
-		return (ArrayList<Keypoint>) new Harris().process(image,gaussian);
-
-	}
-	/**
-	 * Perform Harris corner detection
-	 * @param image Input image
-	 * @param gaussian Gaussian filter parameter
-	 * @param k parameter of the harris measure formula
-	 * @return List of detected corners
-	 */
-	public static ArrayList<Keypoint> exec(Image image,double gaussian,double k) {
-		return (ArrayList<Keypoint>) new Harris().process(image,gaussian,k);
-
-	}
-	/**
-	 * Perform Harris corner detection
-	 * @param image Input image
-	 * @param gaussian Gaussian filter parameter
-	 * @param k parameter of the harris measure formula
-	 * @param maxNumber Maximum number of keypoints
-	 * @return List of detected corners
-	 */
-	public static ArrayList<Keypoint> exec(Image image,double gaussian,double k,int maxNumber) {
-		return (ArrayList<Keypoint>) new Harris().process(image,gaussian,k,maxNumber);
-
-	}
-	
-	/**
-	 * Perform Harris corner detection
-	 * @param image Input image
-	 * @param gaussian Gaussian filter parameter
 	 * @param k parameter of the harris measure formula
 	 * @param maxNumber Maximum number of keypoints
 	 * @param spacing Minimal space between two corners
 	 * @return List of detected corners
 	 */
-	public static ArrayList<Keypoint> exec(Image image,double gaussian,double k,int maxNumber,int spacing) {
-		return (ArrayList<Keypoint>) new Harris().process(image,gaussian,k,maxNumber,spacing);
+	public static ArrayList<Keypoint> exec(Image image,int maxNumber,double gaussian,double k,int spacing) {
+		return (ArrayList<Keypoint>) new Harris().process(image,maxNumber,gaussian,k,spacing);
 
 	}
-	
+
+	/**
+	 * Perform Harris corner detection
+	 * @param image Input image
+	 * @param gaussian Gaussian filter parameter
+	 * @param k parameter of the harris measure formula
+	 * @param maxNumber Maximum number of keypoints
+	 * @return List of detected corners
+	 */
+	public static ArrayList<Keypoint> exec(Image image,int maxNumber,double gaussian,double k) {
+		return (ArrayList<Keypoint>) new Harris().process(image,maxNumber,gaussian,k);
+
+	}
+
 	/**
 	 * Perform Harris corner detection
 	 * @param image Input image
 	 * @param gaussian Gaussian filter parameter
 	 * @param maxNumber Maximum number of keypoints
-	 * @param spacing Minimal space between two corners
 	 * @return List of detected corners
 	 */
-	public static ArrayList<Keypoint> exec(Image image,double gaussian,int maxNumber,int spacing) {
-		return (ArrayList<Keypoint>) new Harris().process(image,gaussian,maxNumber,spacing);
+	public static ArrayList<Keypoint> exec(Image image,int maxNumber,double gaussian) {
+		return (ArrayList<Keypoint>) new Harris().process(image,maxNumber,gaussian);
 
 	}
-	
-	/**
-	 * Perform Harris corner detection
-	 * @param image Input image
-	 * @param gaussian Gaussian filter parameter
-	 * @param maxNumber Maximum number of keypoints
-	 * @return List of detected corners
-	 */
-	public static ArrayList<Keypoint> exec(Image image,double gaussian,int maxNumber) {
-		return (ArrayList<Keypoint>) new Harris().process(image,gaussian,maxNumber);
 
-	}
-	
 	/**
 	 * Perform Harris corner detection
 	 * @param image Input image
@@ -377,18 +342,6 @@ public class Harris extends Algorithm {
 	 */
 	public static ArrayList<Keypoint> exec(Image image,int maxNumber) {
 		return (ArrayList<Keypoint>) new Harris().process(image,maxNumber);
-
-	}
-	
-	/**
-	 * Perform Harris corner detection
-	 * @param image Input image
-	 * @param maxNumber Maximum number of keypoints
-	 * @param spacing Minimal space between two corners
-	 * @return List of detected corners
-	 */
-	public static ArrayList<Keypoint> exec(Image image,int maxNumber,int spacing) {
-		return (ArrayList<Keypoint>) new Harris().process(image,maxNumber,spacing);
 
 	}
 
