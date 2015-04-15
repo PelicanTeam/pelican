@@ -189,10 +189,6 @@ public class FrameVideo extends JFrame implements ActionListener{
 						timer.stop();
 						playPause.setText("PLAY ");
 					}
-					else
-					{
-						frameSld.setValue(1);
-					}
 				}
 			}
 		});
@@ -272,6 +268,14 @@ public class FrameVideo extends JFrame implements ActionListener{
 	        	{
 	        		frameSld.setValue(frameSld.getValue()+1);
 	        	}
+	        	else
+	        	{
+	        		if(onLoop)
+	        		{
+	        			frameSld.setValue(1);
+	        		}
+	        	}
+	        	
 	        }
 	      };
 	    return new Timer ((int)Math.round(1000/frameRate), action);
