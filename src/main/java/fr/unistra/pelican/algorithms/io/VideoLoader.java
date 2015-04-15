@@ -78,16 +78,6 @@ public class VideoLoader extends Algorithm {
 		
 	}
 	
-	public static void main (String[] args)
-	{
-		//String filename = "/home/weber/Documents/Vidéos/original/lamborbig.avi";
-		String filename = "/home/weber/Dropbox/Chargements appareil photo/2012-12-25 10.24.47.mp4";
-		
-		Image video = VideoLoader.exec(filename,25,100,150);
-		video.setColor(true);
-		ViewerVideo.exec(video, "Test", 1.0, true);
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * 
