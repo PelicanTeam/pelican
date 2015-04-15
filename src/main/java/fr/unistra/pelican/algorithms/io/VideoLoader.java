@@ -1,33 +1,39 @@
 package fr.unistra.pelican.algorithms.io;
 
-import java.awt.image.BufferedImage;
-import java.awt.image.WritableRaster;
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
 
-import javax.media.Buffer;
-import javax.media.CannotRealizeException;
-import javax.media.Duration;
-import javax.media.Manager;
-import javax.media.NoPlayerException;
-import javax.media.Player;
-import javax.media.Time;
-import javax.media.control.FrameGrabbingControl;
-import javax.media.control.FramePositioningControl;
-import javax.media.format.VideoFormat;
-import javax.media.util.BufferToImage;
+import java.awt.image.BufferedImage;
+import java.io.File;
+
+import com.xuggle.mediatool.IMediaReader;
+import com.xuggle.mediatool.MediaListenerAdapter;
+import com.xuggle.mediatool.ToolFactory;
+import com.xuggle.mediatool.event.IVideoPictureEvent;
+import com.xuggle.xuggler.IContainer;
+import com.xuggle.xuggler.IStream;
+import com.xuggle.xuggler.IStreamCoder;
+import com.xuggle.xuggler.ICodec;
 
 import fr.unistra.pelican.Algorithm;
 import fr.unistra.pelican.AlgorithmException;
 import fr.unistra.pelican.ByteImage;
+import fr.unistra.pelican.Image;
+import fr.unistra.pelican.PelicanException;
+import fr.unistra.pelican.algorithms.io.ImageLoader;
+import fr.unistra.pelican.algorithms.visualisation.ViewerVideo;
+
 
 /**
- * Experimental video loader (works only the AVI format, for further detail
- * please contact the author). 
- * It allows to choice a ratio of frame which will be discarded and to select an interval for the selection or to load some frames listed in an ArrayList.
+ * Video loader using Xuggle library 
+ * It load the whole video uncompressed, it isn't memory-wise.
  * 
- * @author Erhan Aptoula, Jonathan Weber, Vincent Danner
+ * Possibility to reduce frame number by selecting one frame every ratio frames.
+ * 
+ * You can also select first frame and last frame
+ * 
+ * TODO : Improves efficiency of loading. Too slow for now.
+ * TODO : Deal with timestamp ?
+ * 
+ * @author Jonathan Weber
  */
 
 public class VideoLoader extends Algorithm {
@@ -71,6 +77,16 @@ public class VideoLoader extends Algorithm {
 		super.outputs = "outputImage";
 		
 	}
+	
+	public static void main (String[] args)
+	{
+		//String filename = "/home/weber/Documents/Vidéos/original/lamborbig.avi";
+		String filename = "/home/weber/Dropbox/Chargements appareil photo/2012-12-25 10.24.47.mp4";
+		
+		Image video = VideoLoader.exec(filename,25,100,150);
+		video.setColor(true);
+		ViewerVideo.exec(video, "Test", 1.0, true);
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -78,101 +94,69 @@ public class VideoLoader extends Algorithm {
 	 * @see fr.unistra.pelican.Algorithm#launch()
 	 */
 	public void launch() throws AlgorithmException {
-		// create a movie player, in a 'realized' state
-		Player p = null;
-		int totalFrames = 0;
-		int bands = 1;
-		
-		try{
-			URL url = new URL("file:" + filename);			
-			try {				
-				p = Manager.createRealizedPlayer(url);
-				
-				// create a frame positioner
-				FramePositioningControl fpc = (FramePositioningControl) p
-						.getControl("javax.media.control.FramePositioningControl");
-		
-				// create a frame grabber
-				FrameGrabbingControl fg = (FrameGrabbingControl) p
-						.getControl("javax.media.control.FrameGrabbingControl");
-		
-				// request that the player changes to a 'prefetched' state
-				p.prefetch();
-		
-				// wait until the player is in that state...
-		
-				Time duration = p.getDuration();
-				if (duration != Duration.DURATION_UNKNOWN)
-					totalFrames = fpc.mapTimeToFrame(duration);
-				else
-					throw new AlgorithmException("Duration unknown");
-					
-				// check if the arguments are valid ones
-				if(ratio<=0) throw new AlgorithmException("The ratio must be a positive integer");
-				if(firstFrame<0||firstFrame>=totalFrames) throw new AlgorithmException("The firstFrame must be choosen within the frames of the input (between 0 and "+(totalFrames-1)+")");
-				if(lastFrame==null){ lastFrame = totalFrames-1;}
-				if(lastFrame >=totalFrames ||lastFrame<firstFrame) throw new AlgorithmException("The lastFrame must be choosen within the frames of the input and after the firstFrame (last frame : "+(totalFrames-1)+")");
-				
-				Integer framesUsed = (lastFrame-firstFrame+ratio)/ratio;
-				
-				for (int i = 0; i <framesUsed; i++) {
-					// move to a particular frame
-					fpc.seek(i*ratio+firstFrame+1);
-		
-					// take a snap of the current frame
-					Buffer buf = fg.grabFrame();
-		
-					// get its video format details
-					VideoFormat vf = (VideoFormat) buf.getFormat();
-		
-					// initialize BufferToImage with video format
-					BufferToImage bufferToImage = new BufferToImage(vf);
-		
-					// convert the buffer to an image
-					BufferedImage bim = (BufferedImage) bufferToImage.createImage(buf);
-		
-					int width = bim.getWidth(null);
-					int height = bim.getHeight(null);
-		
-					if (outputImage == null) {
-						switch (bim.getType()) {
-						case BufferedImage.TYPE_BYTE_GRAY:
-						case BufferedImage.TYPE_USHORT_GRAY:
-							bands = 1;
-							break;
-						case BufferedImage.TYPE_INT_RGB:
-						case BufferedImage.TYPE_INT_BGR:
-							bands = 3;
-							break;
-						default:
-							throw new AlgorithmException(
-									"Unsupported pixel organization");
-						}
-						outputImage = new ByteImage(width,height,1,framesUsed,bands);
-						if(outputImage.getBDim()==3) outputImage.setColor(true);
-					}
-		
-					WritableRaster r = bim.getRaster();
-					int loc=(i)*outputImage.getBDim()*outputImage.getXDim()*outputImage.getYDim();
-					for (int y = 0; y < height; y++)
-						for (int x = 0; x < width; x++)
-							for (int b = 0; b < bands; b++)
-							{
-								outputImage.setPixelByte(loc,(byte)r.getSample(x, y, b));
-								loc++;
-								//outputImage.setPixelXYZTBByte(x,y,0,i,b,(byte)r.getSample(x, y, b));
-							}						
-				}			
-			}finally{
-				p.close();
+		long t= System.currentTimeMillis();
+		// Get info about the video (size and # of frames)
+		IContainer container = IContainer.make();
+		if (container.open(filename, IContainer.Type.READ, null) < 0)
+			throw new PelicanException("Could not open file: " + filename);
+		int numStreams = container.getNumStreams();
+		int xDim=-1;
+		int yDim=-1;
+		int tDim=-1;
+		for(int i = 0; i < numStreams; i++)
+		{
+			IStream stream = container.getStream(i);
+			IStreamCoder coder = stream.getStreamCoder();
+			if (coder.getCodecType() == ICodec.Type.CODEC_TYPE_VIDEO)
+			{
+				xDim = coder.getWidth();
+				yDim = coder.getHeight();
+				tDim = (int) stream.getNumFrames();
+				System.out.println(new File(filename).getName()+" => Height: "+yDim+" | Width: "+xDim+" | # Frames: "+tDim+" || "+(xDim*yDim*tDim)+" pixels => "+(xDim*yDim*tDim*3)+" bytes");
+				if(lastFrame==null)
+					lastFrame=tDim-1;
+				if(ratio!=1||firstFrame!=0||lastFrame!=tDim-1)
+					System.out.println("With ratio="+ratio+";firstFrame="+firstFrame+";lastFrame="+lastFrame+" => # Frames: "+(((lastFrame-firstFrame+1)/ratio)+1)+" || "+(xDim*yDim*(((lastFrame-firstFrame+1)/ratio)+1))+" pixels => "+(xDim*yDim*(((lastFrame-firstFrame+1)/ratio)+1)*3)+" bytes");
+				break;
 			}
-		} catch (NoPlayerException e) {
-			throw new AlgorithmException("Unable to read file "+ this.filename);
-		} catch (CannotRealizeException e) {
-			throw new AlgorithmException("Unable to read file "+ this.filename);
-		} catch (IOException e) {
-			throw new AlgorithmException("Unable to read file "+ this.filename);
 		}
+		
+		// Instantiate video output
+		outputImage = new ByteImage(xDim,yDim, 1, ((lastFrame-firstFrame+1)/ratio)+1,3);
+		
+		// Read video and write it to outputImage via the listener
+		IMediaReader reader = ToolFactory.makeReader(filename);
+		reader.setBufferedImageTypeToGenerate(BufferedImage.TYPE_3BYTE_BGR);
+		reader.addListener(new VideoListener());
+		
+		// Read the video file
+		while (reader.readPacket() == null)
+			do {} while(false);
+		System.out.println("Loaded in "+(System.currentTimeMillis()-t)+" ms."); 
+	}
+	
+	private class VideoListener extends MediaListenerAdapter
+	{
+
+		int currentOutputFrame=0;
+		int currentInputFrame=0;
+		
+		public VideoListener()
+		{
+			currentInputFrame = firstFrame.intValue();
+		}
+		
+		
+		public void onVideoPicture(IVideoPictureEvent event)
+		{
+			if(currentInputFrame>=firstFrame&&currentInputFrame<=lastFrame&&(currentInputFrame-firstFrame)%ratio==0)
+			{
+				Image tmp = ImageLoader.convertFromJAI(event.getImage(),false);
+				outputImage.setImage4D(tmp, currentOutputFrame, Image.T);
+				currentOutputFrame++;
+			}
+			currentInputFrame++;			
+		}		
 	}
 
 	/**
@@ -231,16 +215,4 @@ public class VideoLoader extends Algorithm {
 		return (ByteImage) new VideoLoader().process(filename,ratio,firstFrame,lastFrame);
 	}
 	
-	/**
-	 * Experimental video loader.
-	 * 
-	 * @param filename
-	 *            Directory of the video
-	 * @param frameNumbers
-	 * 			  ArrayList which contains the index of the frames selected
-	 * @return the loaded video
-	 */
-	public static ByteImage exec(String filename,ArrayList<Integer> frameNumbers) {
-		return (ByteImage) new FrameLoader().process(filename,frameNumbers);
-	}
 }

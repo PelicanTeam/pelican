@@ -222,7 +222,9 @@ public class ImageLoader extends Algorithm {
 		
 		if (filename.endsWith("mpg") || filename.endsWith("MPG")
 				|| filename.endsWith("avi")|| filename.endsWith("AVI")
-				|| filename.endsWith("mov")|| filename.endsWith("MOV")) {
+				|| filename.endsWith("mov")|| filename.endsWith("MOV")
+				|| filename.endsWith("mp4")|| filename.endsWith("MP4")
+				|| filename.endsWith("flv")|| filename.endsWith("FLV")) {
 				try {
 					outputImage = (Image) new VideoLoader().process(filename);
 				} catch (PelicanException ex) {
