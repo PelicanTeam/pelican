@@ -131,6 +131,17 @@ public class Neighbourhood4D {
 	}
 	
 	/**
+	 * Returns the point of the semi 10-temporal-neighbourhood
+	 * (1,0,0,0),(-1,1,0,0),(0,1,0,0),(1,1,0,0),(0,0,0,1)
+	 * @return semi 8-neighbourhood
+	 */
+	public static Point4D[] getSemi10TemporalNeighboorhood()
+	{
+		Point4D[] neighbourhood = {new Point4D(1,0,0,0),new Point4D(-1,1,0,0),new Point4D(0,1,0,0),new Point4D(1,1,0,0),new Point4D(0,0,0,1)};
+		return neighbourhood;
+	}
+	
+	/**
 	 * Returns the point of the semi 4-neighbourhood
 	 * (1,0,0,0),(0,1,0,0) 
 	 * @return semi 4-neighbourhood

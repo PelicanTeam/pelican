@@ -122,6 +122,7 @@ public class VideoLoader extends Algorithm {
 		// Read the video file
 		while (reader.readPacket() == null)
 			do {} while(false);
+		outputImage.setColor(true);
 		System.out.println("Loaded in "+(System.currentTimeMillis()-t)+" ms."); 
 	}
 	
