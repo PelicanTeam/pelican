@@ -22,6 +22,6 @@ Early in his career, he was one of the bugging ninja who corrupt the code, but h
 
 Now, he spends his time looking for his ancient allies, the bugging ninjas. Trac, Eclipse, Hudson, Sonar and fresh stinging nettles are his allies now. But, the corruption is still in his soul and a bugging ninja he could become again. His final salvation is linked to the discovery of the one-bug, of which the prophecies are talking.
 
-> One bug to crash it all, One bug to stress them, One bug to bring them all and in the desperation bind them In the Land of the abandonned projects where the coders lie.
+> One bug to crash it all, One bug to stress them, One bug to bring them all and in the desperation bind them In the Land of the abandoned projects where the coders lie.
 
 **Be afraid bugging ninjas, here comes the Pelican warrior !**
