@@ -111,12 +111,7 @@ public class RGBToIHLS extends Algorithm {
 			ihls[2]=(2*Math.PI)-hPrime;
 		else
 			ihls[2]=hPrime;
-		
-		if(underFrac==0||upperFrac/underFrac<=-1||upperFrac/underFrac>=1)
-			hPrime=0;
-		
-		
-		
+
 		return ihls;		
 	}
 
